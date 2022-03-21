@@ -16,7 +16,7 @@ Module.register("MMM-Splatoon2", {
   },
 
   start: () => {
-    self = this
+    var self = this
 
     setInterval(() => {
       self.updateDom()
@@ -48,7 +48,7 @@ Module.register("MMM-Splatoon2", {
     const http = new XMLHttpRequest()
 
     http.onreadystatechange = () => {
-      if (this.readyState != 4 || this.status != 200) return "Loading ... "
+      if (this.readyState !== 4 || this.status !== 200) return "Loading ... "
 
       // Handle request
       const response = JSON.parse(this.responseText)
@@ -65,7 +65,7 @@ Module.register("MMM-Splatoon2", {
     http.send()
   },
 
-  createContent: () => {
+  createContent: (response) => {
     // Wraps the entire data section
     var rotations = document.createElement("div")
     rotations.id = "rotations"
