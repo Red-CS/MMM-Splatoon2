@@ -7,14 +7,18 @@ module.exports = NodeHelper.create({
   },
 
   socketNotificationReceived: function (notification, payload) {
-    if (notification === "CONFIG") {
-      console.log("CONFIG notification received")
-      this.config = payload
+    // Recieved Startup notification
+    if (notification === "STARTUP") {
+      console.log("STARTUP notification received")
       this.sendSocketNotification("STARTED")
       console.log("STARTED notification sent back to front end")
-    } else if (notification === "MMM_Splatoon2_ROTATIONS") {
+    }
+
+    // Recieved Rotation Request
+    else if (notification === "MMM_Splatoon2_ROTATIONS_REQUESTED") {
       console.log("ROTATION notification received")
-      console.log("STARTED2 notification sent back to front end")
+
+      // Make request
       https.get(payload.url, (res) => {
         let data = ""
 
@@ -24,8 +28,12 @@ module.exports = NodeHelper.create({
         })
 
         res.on("end", () => {
-          console.log(JSON.parse(data))
-          this.sendSocketNotification("STARTED2", JSON.parse(data))
+          const response = JSON.parse(data)
+          this.sendSocketNotification(
+            "MMM_Splatoon2_ROTATIONS_RECEIVED",
+            response
+          )
+          console.log("ROTATION notification sent back to front end")
         })
       })
     }

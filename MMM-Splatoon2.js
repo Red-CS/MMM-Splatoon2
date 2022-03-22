@@ -10,11 +10,12 @@ Module.register("MMM-Splatoon2", {
   start: function () {
     var self = this
 
-    this.sendSocketNotification("CONFIG", this.config)
-    console.log("notification sent to node_helper")
+    this.sendSocketNotification("STARTUP", this.config)
+    console.log("Startup notification sent to node_helper")
 
     // Setting up interval for refresh
     setInterval(function () {
+      console.log("Interval")
       self.updateDom()
     }, this.config.updateInterval)
   },
@@ -23,51 +24,29 @@ Module.register("MMM-Splatoon2", {
   getDom: function () {
     var wrapper = document.createElement("div")
     wrapper.id = "wrapper"
-    wrapper.innerHTML = this.data.header
-
-    this.sendSocketNotification("MMM_Splatoon2_ROTATIONS", {
-      config: this.config,
+    this.sendSocketNotification("MMM_Splatoon2_ROTATIONS_REQUESTED", {
       url: "https://splatoon2.ink/data/schedules.json"
     })
 
     return wrapper
   },
 
-  getData: () => {
-    // XHTTPRequest agent
-    const http = new XMLHttpRequest()
-
-    http.onreadystatechange = () => {
-      if (http.readyState !== 4 || http.status !== 200) return "Loading ... "
-
-      // Handle request
-      const response = JSON.parse(http.responseText)
-      Log.log(response)
-
-      // Pass response to make content
-      // self.createContent(response, wrapper)
-      return response
-    }
-
-    // API call
-    const baseURL = "https://splatoon2.ink/data/schedules.json"
-    http.open("GET", baseURL, true)
-    http.send()
-  },
-
   socketNotificationReceived: function (notification, payload) {
-    if (notification === "STARTED") {
-      console.log("STARTED notification received from node_helper")
-      this.config.text = "Started"
+    // Recieved Startup
+    if (notification === "STARTUP") {
+      console.log("STARTUP notification received from node_helper")
       this.updateDom()
-    } else if (notification === "STARTED2") {
-      console.log("STARTED2 notification received from node_helper")
-      console.log(payload)
-      // this.updateDom()
+    }
+
+    // Recieved Rotations
+    else if (notification === "MMM_Splatoon2_ROTATIONS_RECEIVED") {
+      console.log("Rotation notification received from node_helper")
+      this.createContent(payload, this.config)
     }
   },
 
-  createContent: (response, wrapper, config) => {
+  createContent: (response, config) => {
+    console.log(response)
     // Wraps the entire data section
     var rotations = document.createElement("div")
     rotations.id = "rotations"
@@ -78,12 +57,13 @@ Module.register("MMM-Splatoon2", {
       // TODO: Add img
 
       let right = document.createElement("ul")
-      right.appendChild(
-        document.createElement("li").innerHTML(response.regular[0].stage_a.name)
-      )
-      right.appendChild(
-        document.createElement("li").innerHTML(response.regular[0].stage_b.name)
-      )
+      let stage_a = document.createElement("li")
+      let stage_b = document.createElement("li")
+
+      stage_a.innerHTML = response.regular[0].stage_a.name
+      stage_b.innerHTML = response.regular[0].stage_b.name
+      right.appendChild(stage_a)
+      right.appendChild(stage_b)
 
       turf.appendChild(right)
       rotations.appendChild(turf)
@@ -95,12 +75,14 @@ Module.register("MMM-Splatoon2", {
       // TODO: Add img
 
       let right = document.createElement("ul")
-      right.appendChild(
-        document.createElement("li").innerHTML(response.ranked[0].stage_a.name)
-      )
-      right.appendChild(
-        document.createElement("li").innerHTML(response.ranked[0].stage_b.name)
-      )
+      let stage_a = document.createElement("li")
+      let stage_b = document.createElement("li")
+
+      stage_a.innerHTML = response.gachi[0].stage_a.name
+      stage_b.innerHTML = response.gachi[0].stage_b.name
+
+      right.appendChild(stage_a)
+      right.appendChild(stage_b)
 
       ranked.appendChild(right)
       rotations.appendChild(ranked)
@@ -112,17 +94,20 @@ Module.register("MMM-Splatoon2", {
       // TODO: Add img
 
       let right = document.createElement("ul")
-      right.appendChild(
-        document.createElement("li").innerHTML(response.regular[0].stage_a.name)
-      )
-      right.appendChild(
-        document.createElement("li").innerHTML(response.regular[0].stage_b.name)
-      )
+      let stage_a = document.createElement("li")
+      let stage_b = document.createElement("li")
+
+      stage_a.innerHTML = response.league[0].stage_a.name
+      stage_b.innerHTML = response.league[0].stage_b.name
+
+      right.appendChild(stage_a)
+      right.appendChild(stage_b)
 
       league.appendChild(right)
       rotations.appendChild(league)
     }
 
+    const wrapper = document.getElementById("wrapper")
     wrapper.appendChild(rotations)
   }
 })
