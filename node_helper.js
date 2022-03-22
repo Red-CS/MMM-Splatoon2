@@ -1,37 +1,33 @@
-/* Magic Mirror
- * Module: MMM-Rest
- *
- * By Dirk Melchers
- * MIT Licensed.
- */
-var NodeHelper = require("node_helper");
-var request = require("request");
+const NodeHelper = require("node_helper")
+const https = require("https")
 
 module.exports = NodeHelper.create({
-	start: function () {
-		console.log(this.name + " helper started ...");
-	},
+  start: () => {
+    console.log(this.name + " has started!")
+  },
 
-	socketNotificationReceived: function (notification, payload) {
-		if (notification === "MMM_REST_REQUEST") {
-			var that = this;
-			request(
-				{
-					url: payload.url,
-					// eslint-disable-next-line indent
-					method: "GET"
-				},
-				function (error, response, body) {
-					// console.log("MMM_REST response:");
-					if (!error && response.statusCode === 200) {
-						// console.log("send notification: "+payload.id);
-						that.sendSocketNotification("MMM_REST_RESPONSE", {
-							id: payload.id,
-							data: response
-						});
-					}
-				}
-			);
-		}
-	}
-});
+  socketNotificationReceived: function (notification, payload) {
+    if (notification === "CONFIG") {
+      console.log("CONFIG notification received")
+      this.config = payload
+      this.sendSocketNotification("STARTED")
+      console.log("STARTED notification sent back to front end")
+    } else if (notification === "MMM_Splatoon2_ROTATIONS") {
+      console.log("ROTATION notification received")
+      console.log("STARTED2 notification sent back to front end")
+      https.get(payload.url, (res) => {
+        let data = ""
+
+        // A chunk of data has been received.
+        res.on("data", (chunk) => {
+          data += chunk
+        })
+
+        res.on("end", () => {
+          console.log(JSON.parse(data))
+          this.sendSocketNotification("STARTED2", JSON.parse(data))
+        })
+      })
+    }
+  }
+})

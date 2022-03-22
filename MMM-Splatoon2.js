@@ -1,62 +1,52 @@
-/**
- * Magic Mirror
- * Module: MMM-Splatoon2
- *
- * By Red-CS
- */
-
 Module.register("MMM-Splatoon2", {
-  // Default configs
+  // Default module config.
   defaults: {
     turf: true, // Show Turf War rotations
     ranked: true, // Show Ranked rotations
     league: true, // Show League rotations
-    updateInterval: 600, // Update every 10 minutes
-    header: "Splatoon 2 Rotations"
+    updateInterval: 600000 // Update every 10 minutes
   },
 
-  start: () => {
+  start: function () {
     var self = this
 
-    setInterval(() => {
+    this.sendSocketNotification("CONFIG", this.config)
+    console.log("notification sent to node_helper")
+
+    // Setting up interval for refresh
+    setInterval(function () {
       self.updateDom()
     }, this.config.updateInterval)
   },
 
-  getDom: () => {
-    // Create initial div
+  // Override dom generator.
+  getDom: function () {
     var wrapper = document.createElement("div")
     wrapper.id = "wrapper"
+    wrapper.innerHTML = this.data.header
 
-    // Main header
-    var header = document.createElement("h4")
-    header.innerHTML = this.config.header
-    header.id = "header"
-
-    wrapper.appendChild(header)
-
-    // Send data and add to DOM
-    this.getData(wrapper)
+    this.sendSocketNotification("MMM_Splatoon2_ROTATIONS", {
+      config: this.config,
+      url: "https://splatoon2.ink/data/schedules.json"
+    })
 
     return wrapper
   },
 
-  getData: (wrapper) => {
-    var self = this
-
+  getData: () => {
     // XHTTPRequest agent
     const http = new XMLHttpRequest()
 
     http.onreadystatechange = () => {
-      if (this.readyState !== 4 || this.status !== 200) return "Loading ... "
+      if (http.readyState !== 4 || http.status !== 200) return "Loading ... "
 
       // Handle request
-      const response = JSON.parse(this.responseText)
-      console.log(response)
+      const response = JSON.parse(http.responseText)
       Log.log(response)
 
       // Pass response to make content
-      self.createContent(response, wrapper)
+      // self.createContent(response, wrapper)
+      return response
     }
 
     // API call
@@ -65,13 +55,25 @@ Module.register("MMM-Splatoon2", {
     http.send()
   },
 
-  createContent: (response) => {
+  socketNotificationReceived: function (notification, payload) {
+    if (notification === "STARTED") {
+      console.log("STARTED notification received from node_helper")
+      this.config.text = "Started"
+      this.updateDom()
+    } else if (notification === "STARTED2") {
+      console.log("STARTED2 notification received from node_helper")
+      console.log(payload)
+      // this.updateDom()
+    }
+  },
+
+  createContent: (response, wrapper, config) => {
     // Wraps the entire data section
     var rotations = document.createElement("div")
     rotations.id = "rotations"
 
     // Add Turf War
-    if (this.config.turf) {
+    if (config.turf) {
       var turf = document.createElement("div")
       // TODO: Add img
 
@@ -88,7 +90,7 @@ Module.register("MMM-Splatoon2", {
     }
 
     // Add Ranked
-    if (this.config.ranked) {
+    if (config.ranked) {
       var ranked = document.createElement("div")
       // TODO: Add img
 
@@ -105,7 +107,7 @@ Module.register("MMM-Splatoon2", {
     }
 
     // Add League
-    if (this.config.league) {
+    if (config.league) {
       var league = document.createElement("div")
       // TODO: Add img
 
@@ -120,9 +122,7 @@ Module.register("MMM-Splatoon2", {
       league.appendChild(right)
       rotations.appendChild(league)
     }
-  },
 
-  getStyles: () => {
-    return ["MMM-Splatoon2.css"]
+    wrapper.appendChild(rotations)
   }
 })
