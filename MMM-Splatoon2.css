@@ -1,0 +1,14 @@
+ul {
+  list-style: none;
+}
+
+img {
+  padding: 16px;
+}
+
+.match-type {
+  display: flex;
+  flex-wrap: nowrap;
+  justify-content: flex-end;
+  align-items: center;
+}

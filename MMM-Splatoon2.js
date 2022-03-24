@@ -4,6 +4,7 @@ Module.register("MMM-Splatoon2", {
     turf: true, // Show Turf War rotations
     ranked: true, // Show Ranked rotations
     league: true, // Show League rotations
+    useGrayScale: true, // Use grayscale images instead of color
     updateInterval: 600000 // Update every 10 minutes
   },
 
@@ -54,7 +55,7 @@ Module.register("MMM-Splatoon2", {
     // Add Turf War
     if (config.turf) {
       var turf = document.createElement("div")
-      // TODO: Add img
+      turf.className = "match-type"
 
       let right = document.createElement("ul")
       let stage_a = document.createElement("li")
@@ -66,12 +67,25 @@ Module.register("MMM-Splatoon2", {
       right.appendChild(stage_b)
 
       turf.appendChild(right)
+
+      // Add image, TODO: Make optional
+      let img = document.createElement("img")
+      img.setAttribute(
+        "src",
+        `modules/MMM-Splatoon2/img/Turf${config.useGrayScale && "_GS"}.png`
+      )
+      img.setAttribute("width", "64px")
+      img.setAttribute("height", "64px")
+
+      turf.appendChild(img)
+
       rotations.appendChild(turf)
     }
 
     // Add Ranked
     if (config.ranked) {
       var ranked = document.createElement("div")
+      ranked.className = "match-type"
       // TODO: Add img
 
       let right = document.createElement("ul")
@@ -85,12 +99,25 @@ Module.register("MMM-Splatoon2", {
       right.appendChild(stage_b)
 
       ranked.appendChild(right)
+
+      // Add image, TODO: Make optional
+      let img = document.createElement("img")
+      img.setAttribute(
+        "src",
+        `modules/MMM-Splatoon2/img/Ranked${config.useGrayScale && "_GS"}.png`
+      )
+      img.setAttribute("width", "64px")
+      img.setAttribute("height", "64px")
+
+      ranked.appendChild(img)
+
       rotations.appendChild(ranked)
     }
 
     // Add League
     if (config.league) {
       var league = document.createElement("div")
+      league.className = "match-type"
       // TODO: Add img
 
       let right = document.createElement("ul")
@@ -104,10 +131,26 @@ Module.register("MMM-Splatoon2", {
       right.appendChild(stage_b)
 
       league.appendChild(right)
+
+      // Add image, TODO: Make optional
+      var img = document.createElement("img")
+      img.setAttribute(
+        "src",
+        `modules/MMM-Splatoon2/img/League${config.useGrayScale && "_GS"}.png`
+      )
+      img.setAttribute("width", "64px")
+      img.setAttribute("height", "64px")
+
+      league.appendChild(img)
+
       rotations.appendChild(league)
     }
 
     const wrapper = document.getElementById("wrapper")
     wrapper.appendChild(rotations)
+  },
+
+  getStyles: () => {
+    return ["MMM-Splatoon2.css"]
   }
 })
