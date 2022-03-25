@@ -15,13 +15,13 @@ git clone https://www.github.com/Red-CS/MMM-Splatoon2
 
 In MagicMirror's `config.js` file, add a new module with a config key in this format:
 
-```json
+```js
 config: {
     turf: true,
     ranked: true,
     league: true,
+    useGrayScale: true
     updateInterval: 600,
-    header: "Splatoon 2 Rotations"
 }
 ```
 

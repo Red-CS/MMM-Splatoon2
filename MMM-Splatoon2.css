@@ -3,12 +3,15 @@ ul {
 }
 
 img {
-  padding: 16px;
+  padding: 16px 0px 16px 16px;
 }
 
-.match-type {
+.row {
   display: flex;
   flex-wrap: nowrap;
-  justify-content: flex-end;
+  justify-content: space-between;
   align-items: center;
 }
+
+/* TODO - Switch position of image and game mode
+based on location of module on screen */
