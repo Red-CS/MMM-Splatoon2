@@ -19,7 +19,6 @@ Module.register("MMM-Splatoon2", {
 
     // Setting up interval for refresh
     setInterval(function () {
-      console.log("Interval")
       self.updateDom()
     }, this.config.updateInterval)
   },
@@ -151,6 +150,7 @@ Module.register("MMM-Splatoon2", {
         league.appendChild(left)
       }
 
+      // FIXME - Group ul and img in same div to fix spacing
       let right = document.createElement("ul")
       let stage_a = document.createElement("li")
       let stage_b = document.createElement("li")
@@ -187,7 +187,6 @@ Module.register("MMM-Splatoon2", {
   }
 })
 
-// TODO - Shorten code by adding helper functions
 const getGameModes = (data) => {
   const gmArr = []
 
@@ -195,18 +194,20 @@ const getGameModes = (data) => {
   gmArr.push("TW")
 
   // Append Ranked
-  gmArr.push(getInitials(data.gachi[0].rule.name))
+  gmArr.push(getGMInitials(data.gachi[0].rule.name))
 
   // Append League
-  gmArr.push(getInitials(data.league[0].rule.name))
+  gmArr.push(getGMInitials(data.league[0].rule.name))
 
   return gmArr
 }
 
-const getInitials = (word) => {
-  return word
-    .split(" ")
-    .map((w) => w[0])
-    .join("")
-    .toUpperCase()
+const getGMInitials = (gameMode) => {
+  // prettier-ignore
+  switch(gameMode) {
+    case "Clam Blitz": return "CM"
+    case "Rainmaker": return "RM"
+    case "Splat Zones": return "SZ"
+    case "Tower Control": return "TC"
+  }
 }
