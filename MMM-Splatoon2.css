@@ -13,5 +13,9 @@ img {
   align-items: center;
 }
 
+.right {
+  display: flex;
+}
+
 /* TODO - Switch position of image and game mode
 based on location of module on screen */

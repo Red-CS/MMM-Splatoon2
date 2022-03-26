@@ -7,7 +7,7 @@ Module.register("MMM-Splatoon2", {
     useGameModes: true, // Show game modes
     useSymbols: true, // Show the Turf War, Ranked, and League symbols
     useGrayScale: true, // Use grayscale images instead of color
-    imageSize: 64, // Size of the images, in pixels REVIEW - Make String or Number
+    imageSize: 48, // Size of the images, in pixels REVIEW - Make String or Number
     updateInterval: 600000 // Update every 10 minutes
   },
 
@@ -16,6 +16,10 @@ Module.register("MMM-Splatoon2", {
 
     this.sendSocketNotification("STARTUP", this.config)
     console.log("Startup notification sent to node_helper")
+
+    if (typeof this.config.imageSize === "number") {
+      this.config.imageSize = `${this.config.imageSize}px`
+    }
 
     // Setting up interval for refresh
     setInterval(function () {
@@ -73,16 +77,19 @@ Module.register("MMM-Splatoon2", {
         turf.appendChild(left)
       }
 
-      let right = document.createElement("ul")
+      let right = document.createElement("div")
+      right.className = "right"
+
+      let stages = document.createElement("ul")
       let stage_a = document.createElement("li")
       let stage_b = document.createElement("li")
 
       stage_a.innerHTML = response.regular[0].stage_a.name
       stage_b.innerHTML = response.regular[0].stage_b.name
-      right.appendChild(stage_a)
-      right.appendChild(stage_b)
+      stages.appendChild(stage_a)
+      stages.appendChild(stage_b)
 
-      turf.appendChild(right)
+      right.appendChild(stages)
 
       if (config.useSymbols) {
         let img = document.createElement("img")
@@ -90,12 +97,13 @@ Module.register("MMM-Splatoon2", {
           "src",
           `modules/MMM-Splatoon2/img/Turf${config.useGrayScale && "_GS"}.png`
         )
-        img.setAttribute("width", "64px")
-        img.setAttribute("height", "64px")
+        img.setAttribute("width", config.imageSize)
+        img.setAttribute("height", config.imageSize)
 
-        turf.appendChild(img)
+        right.appendChild(img)
       }
 
+      turf.appendChild(right)
       rotations.appendChild(turf)
     }
 
@@ -111,17 +119,20 @@ Module.register("MMM-Splatoon2", {
         ranked.appendChild(left)
       }
 
-      let right = document.createElement("ul")
+      let right = document.createElement("div")
+      right.className = "right"
+
+      let stages = document.createElement("ul")
       let stage_a = document.createElement("li")
       let stage_b = document.createElement("li")
 
       stage_a.innerHTML = response.gachi[0].stage_a.name
       stage_b.innerHTML = response.gachi[0].stage_b.name
 
-      right.appendChild(stage_a)
-      right.appendChild(stage_b)
+      stages.appendChild(stage_a)
+      stages.appendChild(stage_b)
 
-      ranked.appendChild(right)
+      right.appendChild(stages)
 
       if (config.useSymbols) {
         let img = document.createElement("img")
@@ -129,11 +140,13 @@ Module.register("MMM-Splatoon2", {
           "src",
           `modules/MMM-Splatoon2/img/Ranked${config.useGrayScale && "_GS"}.png`
         )
-        img.setAttribute("width", "64px")
-        img.setAttribute("height", "64px")
+        img.setAttribute("width", config.imageSize)
+        img.setAttribute("height", config.imageSize)
 
-        ranked.appendChild(img)
+        right.appendChild(img)
       }
+
+      ranked.appendChild(right)
 
       rotations.appendChild(ranked)
     }
@@ -150,18 +163,20 @@ Module.register("MMM-Splatoon2", {
         league.appendChild(left)
       }
 
-      // FIXME - Group ul and img in same div to fix spacing
-      let right = document.createElement("ul")
+      let right = document.createElement("div")
+      right.className = "right"
+
+      let stages = document.createElement("ul")
       let stage_a = document.createElement("li")
       let stage_b = document.createElement("li")
 
       stage_a.innerHTML = response.league[0].stage_a.name
       stage_b.innerHTML = response.league[0].stage_b.name
 
-      right.appendChild(stage_a)
-      right.appendChild(stage_b)
+      stages.appendChild(stage_a)
+      stages.appendChild(stage_b)
 
-      league.appendChild(right)
+      right.appendChild(stages)
 
       if (config.useSymbols) {
         var img = document.createElement("img")
@@ -169,12 +184,13 @@ Module.register("MMM-Splatoon2", {
           "src",
           `modules/MMM-Splatoon2/img/League${config.useGrayScale && "_GS"}.png`
         )
-        img.setAttribute("width", "64px")
-        img.setAttribute("height", "64px")
+        img.setAttribute("width", config.imageSize)
+        img.setAttribute("height", config.imageSize)
 
-        league.appendChild(img)
+        right.appendChild(img)
       }
 
+      league.appendChild(right)
       rotations.appendChild(league)
     }
 
