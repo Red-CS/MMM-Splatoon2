@@ -8,9 +8,8 @@ img {
   height: auto;
 }
 
-h4 {
-  margin: 0;
-  font-weight: bold;
+h1 {
+  text-align: center;
 }
 
 .row {

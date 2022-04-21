@@ -44,7 +44,9 @@ Module.register("MMM-Splatoon2", {
     if (this.activeRotation >= this.rotationData.length) this.activeRotation = 0
 
     wrapper.innerHTML = `
-    <h1>Ranked - Splat Zones</h1>
+    <h1>${this.rotationData[this.activeRotation].battleType} - ${
+      this.rotationData[this.activeRotation].battleMode
+    }</h1>
     <span>
       <img src=${this.rotationData[this.activeRotation].stage_a_img} id="" />
       <img src=${this.rotationData[this.activeRotation].stage_b_img} id="" />
@@ -70,35 +72,15 @@ Module.register("MMM-Splatoon2", {
     }
   },
 
-  // Creates DOM elements given API response
-  createContent: function () {
-    if (this.activeRotation >= this.rotationData.length) this.activeRotation = 0
-
-    const wrapper = document.getElementById("wrapper")
-    wrapper.innerHTML = `
-    <h1>${this.rotationData[this.activeRotation].battleType} - ${
-      this.rotationData[this.activeRotation].battleMode
-    }</h1>
-    <span>
-      <img src=${this.rotationData[this.activeRotation].stage_a_img} id="" />
-      <img src=${this.rotationData[this.activeRotation].stage_b_img} id="" />
-    </span>
-    `
-  },
-
-  getStyles: () => {
-    return ["MMM-Splatoon2.css"]
-  },
-
   // Schedule visual up
   scheduleUpdateInterval: function () {
     // REVIEW - Look into using setTimeout instead
 
-    this.updateDom(this.animationSpeed)
+    this.updateDom(this.config.animationSpeed)
     this.activeRotation++
 
     this.timer = setInterval(() => {
-      this.updateDom(this.animationSpeed)
+      this.updateDom(this.config.animationSpeed)
       if (this.activeRotation === this.rotationData.length) {
         this.activeRotation = 0
       } else this.activeRotation++
@@ -136,5 +118,8 @@ Module.register("MMM-Splatoon2", {
     ]
 
     // TODO - Pop modes that the user does not want to see, specified from configurations
+  },
+  getStyles: () => {
+    return ["MMM-Splatoon2.css"]
   }
 })
