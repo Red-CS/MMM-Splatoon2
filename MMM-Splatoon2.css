@@ -4,8 +4,8 @@ ul {
 }
 
 img {
-  padding: 0px 0px 0px 16px;
-  align-self: center;
+  width: 200px;
+  height: auto;
 }
 
 h4 {

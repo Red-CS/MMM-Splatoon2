@@ -4,26 +4,32 @@ Module.register("MMM-Splatoon2", {
     turf: true, // Show Turf War rotations
     ranked: true, // Show Ranked rotations
     league: true, // Show League rotations
-    useGameModes: true, // Show game modes
-    useSymbols: true, // Show the Turf War, Ranked, and League symbols
-    useGrayScale: true, // Use grayscale images instead of color
-    imageSize: 48, // Size of the images, in pixels REVIEW - Make String or Number
-    updateInterval: 600000 // Update every 10 minutes
+    updateInterval: 600000, // Update every 10 minutes
+    animationSpeed: 500, // Time to fade to next rotation
+    animationDuration: 10000 // How long the screen will show a rotation
   },
 
   start: function () {
-    var self = this
-
+    // Log start
+    Log.info("Starting module: " + this.name)
     this.sendSocketNotification("STARTUP", this.config)
     console.log("Startup notification sent to node_helper")
 
-    if (typeof this.config.imageSize === "number") {
-      this.config.imageSize = `${this.config.imageSize}px`
-    }
+    // Set active rotation. Is used to loop through turf war, ranked, league
+    this.activeRotation = 0
+
+    this.sendSocketNotification("MMM_Splatoon2_ROTATIONS_REQUESTED", {
+      url: "https://splatoon2.ink/data/schedules.json"
+    })
+
+    // TODO - Call set interval every two hours after rotations refresh
 
     // Setting up interval for refresh
-    setInterval(function () {
-      self.updateDom()
+    setInterval(() => {
+      this.updateDom()
+      this.sendSocketNotification("MMM_Splatoon2_ROTATIONS_REQUESTED", {
+        url: "https://splatoon2.ink/data/schedules.json"
+      })
     }, this.config.updateInterval)
   },
 
@@ -31,199 +37,104 @@ Module.register("MMM-Splatoon2", {
   getDom: function () {
     var wrapper = document.createElement("div")
     wrapper.id = "wrapper"
-    this.sendSocketNotification("MMM_Splatoon2_ROTATIONS_REQUESTED", {
-      url: "https://splatoon2.ink/data/schedules.json"
-    })
 
+    // Skip below code on initial DOM render
+    if (typeof this.rotationData === "undefined") return wrapper
+
+    if (this.activeRotation >= this.rotationData.length) this.activeRotation = 0
+
+    wrapper.innerHTML = `
+    <h1>Ranked - Splat Zones</h1>
+    <span>
+      <img src=${this.rotationData[this.activeRotation].stage_a_img} id="" />
+      <img src=${this.rotationData[this.activeRotation].stage_b_img} id="" />
+    </span>
+    `
     return wrapper
   },
 
+  // Handle socket notification from node_helper
   socketNotificationReceived: function (notification, payload) {
     // Recieved Startup
     if (notification === "STARTUP") {
-      console.log("STARTUP notification received from node_helper")
-      this.updateDom()
+      console.log("Statup notification received from node_helper")
     }
 
     // Recieved Rotations
     else if (notification === "MMM_Splatoon2_ROTATIONS_RECEIVED") {
       console.log("Rotation notification received from node_helper")
-      this.createContent(payload, this.config)
+      clearInterval(this.timer)
+      this.timer = null
+      this.formatData(payload)
+      this.scheduleUpdateInterval()
     }
   },
 
   // Creates DOM elements given API response
-  createContent: (response, config) => {
-    // Wraps the entire data section
-    var rotations = document.createElement("div")
-    rotations.id = "rotations"
-
-    var gameModes
-    if (config.useGameModes) {
-      gameModes = getGameModes(response)
-    }
-
-    // TODO Convert possible string imageSize value to number
-
-    // Add Turf War
-    if (config.turf) {
-      var turf = document.createElement("div")
-      turf.className = "row"
-
-      if (typeof gameModes !== "undefined") {
-        // Add game mode
-        let left = document.createElement("h4")
-        left.innerHTML = gameModes[0]
-        turf.appendChild(left)
-      }
-
-      let right = document.createElement("div")
-      right.className = "right"
-
-      let stages = document.createElement("ul")
-      let stage_a = document.createElement("li")
-      let stage_b = document.createElement("li")
-
-      stage_a.innerHTML = response.regular[0].stage_a.name
-      stage_b.innerHTML = response.regular[0].stage_b.name
-      stages.appendChild(stage_a)
-      stages.appendChild(stage_b)
-
-      right.appendChild(stages)
-
-      if (config.useSymbols) {
-        let img = document.createElement("img")
-        img.setAttribute(
-          "src",
-          `modules/MMM-Splatoon2/img/Turf${config.useGrayScale && "_GS"}.png`
-        )
-        img.setAttribute("width", config.imageSize)
-        img.setAttribute("height", config.imageSize)
-
-        right.appendChild(img)
-      }
-
-      turf.appendChild(right)
-      rotations.appendChild(turf)
-    }
-
-    // Add Ranked
-    if (config.ranked) {
-      var ranked = document.createElement("div")
-      ranked.className = "row"
-
-      if (typeof gameModes !== "undefined") {
-        // Add game mode
-        let left = document.createElement("h4")
-        left.innerHTML = gameModes[1]
-        ranked.appendChild(left)
-      }
-
-      let right = document.createElement("div")
-      right.className = "right"
-
-      let stages = document.createElement("ul")
-      let stage_a = document.createElement("li")
-      let stage_b = document.createElement("li")
-
-      stage_a.innerHTML = response.gachi[0].stage_a.name
-      stage_b.innerHTML = response.gachi[0].stage_b.name
-
-      stages.appendChild(stage_a)
-      stages.appendChild(stage_b)
-
-      right.appendChild(stages)
-
-      if (config.useSymbols) {
-        let img = document.createElement("img")
-        img.setAttribute(
-          "src",
-          `modules/MMM-Splatoon2/img/Ranked${config.useGrayScale && "_GS"}.png`
-        )
-        img.setAttribute("width", config.imageSize)
-        img.setAttribute("height", config.imageSize)
-
-        right.appendChild(img)
-      }
-
-      ranked.appendChild(right)
-
-      rotations.appendChild(ranked)
-    }
-
-    // Add League
-    if (config.league) {
-      var league = document.createElement("div")
-      league.className = "row"
-
-      if (typeof gameModes !== "undefined") {
-        // Add game mode
-        let left = document.createElement("h4")
-        left.innerHTML = gameModes[2]
-        league.appendChild(left)
-      }
-
-      let right = document.createElement("div")
-      right.className = "right"
-
-      let stages = document.createElement("ul")
-      let stage_a = document.createElement("li")
-      let stage_b = document.createElement("li")
-
-      stage_a.innerHTML = response.league[0].stage_a.name
-      stage_b.innerHTML = response.league[0].stage_b.name
-
-      stages.appendChild(stage_a)
-      stages.appendChild(stage_b)
-
-      right.appendChild(stages)
-
-      if (config.useSymbols) {
-        var img = document.createElement("img")
-        img.setAttribute(
-          "src",
-          `modules/MMM-Splatoon2/img/League${config.useGrayScale && "_GS"}.png`
-        )
-        img.setAttribute("width", config.imageSize)
-        img.setAttribute("height", config.imageSize)
-
-        right.appendChild(img)
-      }
-
-      league.appendChild(right)
-      rotations.appendChild(league)
-    }
+  createContent: function () {
+    if (this.activeRotation >= this.rotationData.length) this.activeRotation = 0
 
     const wrapper = document.getElementById("wrapper")
-    wrapper.appendChild(rotations)
+    wrapper.innerHTML = `
+    <h1>${this.rotationData[this.activeRotation].battleType} - ${
+      this.rotationData[this.activeRotation].battleMode
+    }</h1>
+    <span>
+      <img src=${this.rotationData[this.activeRotation].stage_a_img} id="" />
+      <img src=${this.rotationData[this.activeRotation].stage_b_img} id="" />
+    </span>
+    `
   },
 
   getStyles: () => {
     return ["MMM-Splatoon2.css"]
+  },
+
+  // Schedule visual up
+  scheduleUpdateInterval: function () {
+    // REVIEW - Look into using setTimeout instead
+
+    this.updateDom(this.animationSpeed)
+    this.activeRotation++
+
+    this.timer = setInterval(() => {
+      this.updateDom(this.animationSpeed)
+      if (this.activeRotation === this.rotationData.length) {
+        this.activeRotation = 0
+      } else this.activeRotation++
+    }, this.config.animationDuration)
+  },
+
+  // Parses and formats Splatoon rotation data
+  formatData: function (data) {
+    const baseURL = "https://app.splatoon2.nintendo.net"
+    this.rotationData = [
+      {
+        battleType: "Regular Battle",
+        battleMode: data.regular[0].rule.name,
+        stage_a_name: data.regular[0].stage_a.name,
+        stage_a_img: baseURL + data.regular[0].stage_a.image,
+        stage_b_name: data.regular[0].stage_b.name,
+        stage_b_img: baseURL + data.regular[0].stage_b.image
+      },
+      {
+        battleType: "Ranked Battle",
+        battleMode: data.gachi[0].rule.name,
+        stage_a_name: data.gachi[0].stage_a.name,
+        stage_a_img: baseURL + data.gachi[0].stage_a.image,
+        stage_b_name: data.gachi[0].stage_b.name,
+        stage_b_img: baseURL + data.gachi[0].stage_b.image
+      },
+      {
+        battleType: "League Battle",
+        battleMode: data.league[0].rule.name,
+        stage_a_name: data.league[0].stage_a.name,
+        stage_a_img: baseURL + data.league[0].stage_a.image,
+        stage_b_name: data.league[0].stage_b.name,
+        stage_b_img: baseURL + data.league[0].stage_b.image
+      }
+    ]
+
+    // TODO - Pop modes that the user does not want to see, specified from configurations
   }
 })
-
-const getGameModes = (data) => {
-  const gmArr = []
-
-  // Append Turf War
-  gmArr.push("TW")
-
-  // Append Ranked
-  gmArr.push(getGMInitials(data.gachi[0].rule.name))
-
-  // Append League
-  gmArr.push(getGMInitials(data.league[0].rule.name))
-
-  return gmArr
-}
-
-const getGMInitials = (gameMode) => {
-  // prettier-ignore
-  switch(gameMode) {
-    case "Clam Blitz": return "CM"
-    case "Rainmaker": return "RM"
-    case "Splat Zones": return "SZ"
-    case "Tower Control": return "TC"
-  }
-}

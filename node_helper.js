@@ -10,8 +10,8 @@ module.exports = NodeHelper.create({
     // Recieved Startup notification
     if (notification === "STARTUP") {
       console.log("STARTUP notification received")
-      this.sendSocketNotification("STARTED")
-      console.log("STARTED notification sent back to front end")
+      this.sendSocketNotification("STARTUP")
+      console.log("STARTUP notification sent back to front end")
     }
 
     // Recieved Rotation Request
